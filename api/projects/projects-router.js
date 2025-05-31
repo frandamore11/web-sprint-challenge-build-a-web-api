@@ -1,6 +1,7 @@
 // Write your "projects" router here!
 const express = require('express');
 const Projects = require('./projects-model');
+const { validateProjectData } = require('./projects-middleware');
 
 const router = express.Router();
 
@@ -41,40 +42,23 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// [POST] /api/projects - Creates a new project
-router.post('/', async (req, res) => {
+// [POST] /api/projects - Creates a new project (WITH MIDDLEWARE)
+router.post('/', validateProjectData, async (req, res) => {
   try {
-    console.log('Creating project with data:', req.body);
-    const { name, description } = req.body;
-    
-    if (!name || !description) {
-      return res.status(400).json({ 
-        message: 'Please provide name and description for the project' 
-      });
-    }
-
+    // No need to validate here anymore - middleware handles it!
     const newProject = await Projects.insert(req.body);
     res.status(201).json(newProject);
   } catch (error) {
-    console.log('Error creating project:', error.message);
     res.status(500).json({ 
       message: 'There was an error while saving the project to the database' 
     });
   }
 });
 
-// [PUT] /api/projects/:id - Updates the project with the given id
-router.put('/:id', async (req, res) => {
+// [PUT] /api/projects/:id - Updates the project (WITH MIDDLEWARE)
+router.put('/:id', validateProjectData, async (req, res) => {
   try {
-    console.log('Updating project ID:', req.params.id, 'with data:', req.body);
-    const { name, description } = req.body;
-    
-    if (!name || !description) {
-      return res.status(400).json({ 
-        message: 'Please provide name and description for the project' 
-      });
-    }
-
+    // No need to validate here anymore - middleware handles it!
     const updatedProject = await Projects.update(req.params.id, req.body);
     
     if (updatedProject) {
@@ -85,12 +69,12 @@ router.put('/:id', async (req, res) => {
       });
     }
   } catch (error) {
-    console.log('Error updating project:', error.message);
     res.status(500).json({ 
       message: 'The project information could not be modified' 
     });
   }
 });
+
 
 router.delete('/:id', async (req, res) => {
   try {
