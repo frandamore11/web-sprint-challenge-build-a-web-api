@@ -1,1 +1,95 @@
 // Write your "projects" router here!
+const express = require('express');
+const Projects = require('./projects-model');
+
+const router = express.Router();
+
+// [GET] /api/projects - Returns an array of projects
+router.get('/', async (req, res) => {
+  try {
+    console.log('Attempting to get projects...');
+    const projects = await Projects.get();
+    // console.log('Projects retrieved:', projects);
+    res.status(200).json(projects);
+  } catch (error) {
+    // console.log('Error occurred:', error.message);
+    // console.log('Full error:', error);
+    res.status(500).json({ 
+      message: 'The projects information could not be retrieved' 
+    });
+  }
+});
+
+// [GET] /api/projects/:id - Returns a project with the given id
+router.get('/:id', async (req, res) => {
+  try {
+    console.log('Getting project with ID:', req.params.id);
+    const project = await Projects.get(req.params.id);
+    
+    if (project) {
+      res.status(200).json(project);
+    } else {
+      res.status(404).json({ 
+        message: 'The project with the specified ID does not exist' 
+      });
+    }
+  } catch (error) {
+    console.log('Error getting project by ID:', error.message);
+    res.status(500).json({ 
+      message: 'The project information could not be retrieved' 
+    });
+  }
+});
+
+// [POST] /api/projects - Creates a new project
+router.post('/', async (req, res) => {
+  try {
+    console.log('Creating project with data:', req.body);
+    const { name, description } = req.body;
+    
+    if (!name || !description) {
+      return res.status(400).json({ 
+        message: 'Please provide name and description for the project' 
+      });
+    }
+
+    const newProject = await Projects.insert(req.body);
+    res.status(201).json(newProject);
+  } catch (error) {
+    console.log('Error creating project:', error.message);
+    res.status(500).json({ 
+      message: 'There was an error while saving the project to the database' 
+    });
+  }
+});
+
+// [PUT] /api/projects/:id - Updates the project with the given id
+router.put('/:id', async (req, res) => {
+  try {
+    console.log('Updating project ID:', req.params.id, 'with data:', req.body);
+    const { name, description } = req.body;
+    
+    if (!name || !description) {
+      return res.status(400).json({ 
+        message: 'Please provide name and description for the project' 
+      });
+    }
+
+    const updatedProject = await Projects.update(req.params.id, req.body);
+    
+    if (updatedProject) {
+      res.status(200).json(updatedProject);
+    } else {
+      res.status(404).json({ 
+        message: 'The project with the specified ID does not exist' 
+      });
+    }
+  } catch (error) {
+    console.log('Error updating project:', error.message);
+    res.status(500).json({ 
+      message: 'The project information could not be modified' 
+    });
+  }
+});
+
+module.exports = router;
