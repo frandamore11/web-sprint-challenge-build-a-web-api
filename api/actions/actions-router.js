@@ -72,4 +72,67 @@ router.post('/', async (req, res) => {
   }
 });
 
+// [PUT] /api/actions/:id - Updates the action with the given id
+router.put('/:id', async (req, res) => {
+  try {
+    console.log('Updating action ID:', req.params.id, 'with data:', req.body);
+    const { project_id, description, notes } = req.body;
+    
+    // Check if required fields are provided
+    if (!project_id || !description || !notes) {
+      return res.status(400).json({ 
+        message: 'Please provide project_id, description, and notes for the action' 
+      });
+    }
+
+    // Check if the project exists
+    const Projects = require('../projects/projects-model');
+    const project = await Projects.get(project_id);
+    
+    if (!project) {
+      return res.status(400).json({ 
+        message: 'The project_id provided does not belong to an existing project' 
+      });
+    }
+
+    const updatedAction = await Actions.update(req.params.id, req.body);
+    
+    if (updatedAction) {
+      res.status(200).json(updatedAction);
+    } else {
+      res.status(404).json({ 
+        message: 'The action with the specified ID does not exist' 
+      });
+    }
+  } catch (error) {
+    console.log('Error updating action:', error.message);
+    res.status(500).json({ 
+      message: 'The action information could not be modified' 
+    });
+  }
+});
+
+// [DELETE] /api/actions/:id - Deletes the action with the given id
+router.delete('/:id', async (req, res) => {
+  try {
+    console.log('Deleting action with ID:', req.params.id);
+    const deletedCount = await Actions.remove(req.params.id);
+    
+    if (deletedCount) {
+      res.status(200).json({ 
+        message: 'The action has been deleted' 
+      });
+    } else {
+      res.status(404).json({ 
+        message: 'The action with the specified ID does not exist' 
+      });
+    }
+  } catch (error) {
+    console.log('Error deleting action:', error.message);
+    res.status(500).json({ 
+      message: 'The action could not be removed' 
+    });
+  }
+});
+
 module.exports = router;
